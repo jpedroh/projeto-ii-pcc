@@ -8,6 +8,9 @@
 
 using namespace std;
 
+#ifndef Sarr_H
+#define Sarr_H
+
 class Sarr
 {
     private:
@@ -246,4 +249,5 @@ class Sarr
         fclose(indexed_file);
         return make_pair(total, lines_occ);
     }
-};
+}; 
+#endif

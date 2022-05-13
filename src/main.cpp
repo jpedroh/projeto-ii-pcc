@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <sstream>
 #include <utility>
-#include "sarr.cpp"
+#include "sarr.h"
 
 using namespace std;
 
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 
     //TODO: melhorar esse pattern
     if(options.action == "index") {
-        Sarr algorithm;
+        auto algorithm = make_unique<Sarr>();
 
         for(auto file_name : options.files)
         {
@@ -149,21 +149,21 @@ int main(int argc, char **argv)
             FILE *indexed_file = fopen(aux_file_name.c_str(), "wb");
 
             while(getline(file, line)){
-                algorithm.index(line, indexed_file);
+                algorithm->index(line, indexed_file);
             }
 
             fclose(indexed_file);
             file.close();
         }
     } else if(options.action == "search"){
-        Sarr algorithm;
+        auto algorithm = make_unique<Sarr>();
         auto patterns = get_patterns_from_options(options);
         long long total_occ = 0;
         vector<vector<string>> total_lines_occ;
 
         for(auto file_name : options.files)
         {
-            auto lines_occurrance = algorithm.search(patterns, file_name);
+            auto lines_occurrance = algorithm->search(patterns, file_name);
             total_occ += lines_occurrance.first;
             total_lines_occ.push_back(lines_occurrance.second);
         }
