@@ -11,6 +11,7 @@
 #include <bits/stdc++.h>
 #include "sarr.h"
 #include "zip.h"
+#include "unzip.h"
 
 using namespace std;
 
@@ -183,8 +184,7 @@ int main(int argc, char **argv)
             }
         }
     } else if(options.action == "zip") {
-        auto in_file_name = argv[2];
-        auto out_file_name = argv[3];
+        auto in_file_name = string(argv[2]);
 
         ifstream input_file(in_file_name);
         string text;
@@ -202,12 +202,27 @@ int main(int argc, char **argv)
         auto encoded_text = encode(encoding_dictionary, text);
 
         ofstream out_file;
+        auto out_file_name = in_file_name + ".myz";
         out_file.open(out_file_name, ios::binary | ios::out);
         write_encoded_file(out_file, encoding_dictionary, encoded_text);
     }
     else if (options.action == "unzip")
     {
-        }
+        auto in_file_name = string(argv[2]);
+
+        ifstream in_file;
+        in_file.open(in_file_name, ios::binary | ios::in);
+
+        auto decoding_dictionary = get_decoding_dictionary_from_file(in_file);
+        auto encoded_text = get_encoded_text_from_file(in_file);
+
+        auto decoded = decode(decoding_dictionary, encoded_text);
+
+        auto out_file_name = in_file_name.substr(0, in_file_name.size() - 4) + ".original";
+        ofstream out_file(out_file_name);
+        out_file << decoded;
+        out_file.close();
+    }
     else
     {
         PrintHelp();
