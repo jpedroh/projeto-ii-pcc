@@ -189,10 +189,11 @@ int main(int argc, char **argv)
         ifstream input_file(in_file_name);
         string text;
         std::unordered_map<char, int> occurrences;
-        while (!input_file.eof())
+        while (true)
         {
             char next;
             input_file.read(&next, sizeof(char));
+            if (input_file.eof()) break;
             text += next;
             occurrences[next]++;
         }
