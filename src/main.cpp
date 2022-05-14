@@ -8,7 +8,9 @@
 #include <algorithm>
 #include <sstream>
 #include <utility>
+#include <bits/stdc++.h>
 #include "sarr.h"
+#include "zip.h"
 
 using namespace std;
 
@@ -181,10 +183,33 @@ int main(int argc, char **argv)
             }
         }
     } else if(options.action == "zip") {
+        auto in_file_name = argv[2];
+        auto out_file_name = argv[3];
 
-    } else if(options.action == "unzip"){
+        ifstream input_file(in_file_name);
+        string text;
+        std::unordered_map<char, int> occurrences;
+        while (!input_file.eof())
+        {
+            char next;
+            input_file.read(&next, sizeof(char));
+            text += next;
+            occurrences[next]++;
+        }
 
-    } else {
+        auto root = build_huffman_tree(occurrences);
+        auto encoding_dictionary = get_encoding_dictionary(root);
+        auto encoded_text = encode(encoding_dictionary, text);
+
+        ofstream out_file;
+        out_file.open(out_file_name, ios::binary | ios::out);
+        write_encoded_file(out_file, encoding_dictionary, encoded_text);
+    }
+    else if (options.action == "unzip")
+    {
+        }
+    else
+    {
         PrintHelp();
         return 1;
     }
