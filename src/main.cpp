@@ -110,7 +110,15 @@ vector<string> get_patterns_from_options(ipmt_options options)
 
 void PrintHelp()
 {
-    cout << "--help: Mostra esta mensagem de ajuda\n";
+        cout <<  "Modos da ferramenta:\n"
+                 "\tindex textfile: Cria um arquivo indexado a partir do textfile\n"
+                 "\tsearch [opções] pattern indexfile: Faz a busca do pattern dentro do indexfile\n"
+                 "\tzip textfile: Cria um arquivo comprimido de textfile\n"
+                 "\tunzip textfile.myz: Descompacta o arquivo comprimido textfile.myz\n\n"
+                 "Opções da ferramenta:\n"
+                 "\t-p, --pattern patternfile:\tRealiza a busca de todos os padroes contidos no arquivo pattern-file.\n"
+                 "\t-c, --count:\tImprime apenas a quantidade total de ocorrencias dos padrões contidas nos textos.\n"
+                 "\t--help: \tMostra esta mensagem de ajuda\n";
     exit(1);
 }
 
