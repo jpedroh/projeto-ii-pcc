@@ -1,15 +1,8 @@
 #include <getopt.h>
-#include <iostream>
-#include <vector>
 #include <glob.h>
-#include <fstream>
-#include <iterator>
-#include <memory>
-#include <algorithm>
-#include <sstream>
-#include <utility>
 #include <bits/stdc++.h>
-#include "sarr.h"
+#include <sarr_index.h>
+#include <sarr_search.h>
 #include "zip.h"
 #include "unzip.h"
 
@@ -137,38 +130,73 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    //TODO: melhorar esse pattern
     if(options.action == "index") {
-        auto algorithm = make_unique<Sarr>();
-
         for(auto file_name : options.files)
         {
             string line, aux_file_name = file_name;
             
-            int idx = aux_file_name.find(".");
+            int idx = aux_file_name.find_last_of(".");
             aux_file_name = aux_file_name.replace(idx, file_name.size() - idx, ".idx");
 
             ifstream file(file_name);
-            FILE *indexed_file = fopen(aux_file_name.c_str(), "wb");
+            ofstream indexed_file(aux_file_name, ios::binary | ios::out);
+            vector<vector<int>> P;
+            vector<int> llcp, rlcp, sarr;
 
             while(getline(file, line)){
-                algorithm->index(line, indexed_file);
+                int n = (int)line.size();
+                if(n < 1) continue; // Jump empty lines
+                int log2N = (int)ceil(log2(n));
+                P.resize(max(log2N+1, 2));
+                llcp.resize(n); rlcp.resize(n);
+                fill(llcp.begin(), llcp.end(), -1); fill(rlcp.begin(), rlcp.end(), -1);
+                sarr.resize(n);
+
+                build_P(P, line);
+                build_sarr(sarr, P.back());
+                build_LR_lcp(line, P, sarr, llcp, rlcp, 0, (int)sarr.size()-1);
+
+                indexed_file.write(reinterpret_cast<const char *>(&n), sizeof(int));
+                write_vector_in_file(P[0], indexed_file);
+                write_vector_in_file(sarr, indexed_file);
+                write_vector_in_file(llcp, indexed_file);
+                write_vector_in_file(rlcp, indexed_file);
             }
 
-            fclose(indexed_file);
-            file.close();
+            file.close(); indexed_file.close();
         }
+
     } else if(options.action == "search"){
-        auto algorithm = make_unique<Sarr>();
         auto patterns = get_patterns_from_options(options);
         long long total_occ = 0;
-        vector<vector<string>> total_lines_occ;
+        vector<string> total_lines_occ;
 
         for(auto file_name : options.files)
         {
-            auto lines_occurrance = algorithm->search(patterns, file_name);
-            total_occ += lines_occurrance.first;
-            total_lines_occ.push_back(lines_occurrance.second);
+            ifstream file(file_name);
+            int n;
+            vector<int> p0, llcp, rlcp, sarr;
+
+            while(file.read(reinterpret_cast<char *>(&n), sizeof(int)) && n){
+                p0.resize(n); llcp.resize(n); rlcp.resize(n); sarr.resize(n);
+                read_vector_from_file(p0, file);
+                read_vector_from_file(sarr, file);
+                read_vector_from_file(llcp, file);
+                read_vector_from_file(rlcp, file);
+                bool included_line = false;
+
+                string txt(p0.begin(), p0.end());
+                for(string pat : patterns){
+                    auto occ = search_sarr(txt, pat, sarr, llcp, rlcp);
+                    if(!occ.empty() && !included_line){
+                        total_lines_occ.push_back(txt);
+                        included_line = true;
+                    }
+                    total_occ += (long long)occ.size();
+                }
+            }
+
+            file.close();
         }
 
         if (options.is_count)
@@ -177,12 +205,9 @@ int main(int argc, char **argv)
             return 0;
         }
 
-        for (auto files_line : total_lines_occ)
-        {
-            for(auto line : files_line){
-                cout << line << '\n';
-            }
-        }
+        for (auto lines : total_lines_occ)
+            cout << lines << '\n';
+
     } else if(options.action == "zip") {
         auto in_file_name = string(argv[2]);
 
